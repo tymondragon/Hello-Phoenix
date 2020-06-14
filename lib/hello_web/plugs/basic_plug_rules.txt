@@ -1,0 +1,64 @@
+Where to plug:
+Endpoint, Router, and Controllers
+
+Endpoints:
+  Endpoints organize all the plugs common to every request, and apply them before dispatching into the router with its custom pipelines. We added a plug to the endpoint like this:
+
+    defmodule HelloWeb.Endpoint do
+      ...
+
+      plug :introspect
+      plug HelloWeb.Router
+
+
+Router:
+  Declare plugs inside pipelines
+
+    pipeline :browser do
+      ...
+      plug HelloWeb.Plugs.Locale, "en"
+    end
+
+
+Controller:
+  controllers are plugs too, so we can do:
+
+    defmodule HelloWeb.HelloController do
+    use HelloWeb, :controller
+
+    plug HelloWeb.Plugs.Locale, "en"
+
+  In particular, controller plugs provide a feature that allows us to execute plugs only within certain actions. For example, you can do:
+
+    defmodule HelloWeb.HelloController do
+      use HelloWeb, :controller
+
+    plug HelloWeb.Plugs.Locale, "en" when action in [:index]
+  
+  And the plug will only be executed for the index action.
+
+Plug as Composition:
+- A few steps of authentication and authorization requires complicated nesting and duplication
+- You can convert nested blocks of code and used halt(conn) whenever we reach a failure path
+  The halt(conn) functionality is essential:  
+    it tells Plug that the next plug should not be invoked
+
+^^^^^^^^ is essentially halt(conn) is like next() in Express^^^^^^^^^
+
+example:
+  defmodule HelloWeb.MessageController do
+    use HelloWeb, :controller
+
+    plug :authenticate
+    plug :fetch_message
+    plug :authorize_message
+
+    def show(conn, params) do
+      render(conn, :show, page: find_message(params["id"]))
+    end
+
+    .....
+  end
+
+
+  ^^^^^^ similar to middleware in Express^^^^^^^
