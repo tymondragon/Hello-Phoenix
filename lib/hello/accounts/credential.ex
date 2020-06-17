@@ -2,10 +2,9 @@ defmodule Hello.Accounts.Credential do
   use Ecto.Schema
   import Ecto.Changeset
   alias Hello.Accounts.User
-  
+
   schema "credentials" do
     field :email, :string
-    field :user_id, :id
     belongs_to :user, User
     timestamps()
   end
@@ -15,6 +14,7 @@ defmodule Hello.Accounts.Credential do
     credential
     |> cast(attrs, [:email])
     |> validate_required([:email])
+    |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
   end
 end
